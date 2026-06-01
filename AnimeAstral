@@ -145,6 +145,46 @@ Cred.Button({
     end,
 })
 
+local ii = Y.Dropdown({
+    Text = "Select Star",
+    Callback = function(Value)
+        getgenv().starname = Value
+    end,
+    Options = {"World1",
+"World2",
+"World3",
+"World4"}
+})
+
+Y.Toggle({
+    Text = "Auto Star",
+    Callback = function(Value)
+        _G.AutoStar = Value
+        task.spawn(function()
+            while _G.AutoStar do 
+                task.wait(0.1)
+                pcall(function()
+                                    local args = {
+                        [1] = {
+                            [1] = {
+                                ["__BridgeTuplePayload__"] = true,
+                                ["Payload"] = {
+                                    [1] = starname,
+                                    
+                                    ["n"] = 2
+                                }
+                            },
+                            [2] = "\\"
+                        }
+                    }
+
+                    game:GetService("ReplicatedStorage"):WaitForChild("BridgeNet2"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
+                end)
+            end
+        end)
+    end,
+    Enabled = false
+})
 
 local ii = Y.Dropdown({
     Text = "Select Mob",
