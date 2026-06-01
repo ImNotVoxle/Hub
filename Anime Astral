@@ -1,0 +1,349 @@
+local NPCS = {}
+
+for i, v in pairs(game:GetService("Workspace").Worlds:GetDescendants()) do
+    if v:IsA("Model") and v.Parent.Name == "Enemies" then
+        if not table.find(NPCS, tostring(v)) then
+            table.insert(NPCS, tostring(v))
+        end
+    end
+end
+
+local Material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kinlei/MaterialLua/master/Module.lua"))()
+
+local X = Material.Load({
+    Title = "Voxle",
+    Style = 2,
+    SizeX = 300,
+    SizeY = 350,
+    Theme = "Light",
+    ColorOverrides = {
+        MainFrame = Color3.fromRGB(0,0,0),
+        Toggle = Color3.fromRGB(124,37,255),
+        ToggleAccent = Color3.fromRGB(255,255,255), 
+        Dropdown = Color3.fromRGB(124,37,255),
+        DropdownAccent = Color3.fromRGB(255,255,255),
+        Slider = Color3.fromRGB(124,37,255),
+        SliderAccent = Color3.fromRGB(255,255,255),
+        NavBarAccent = Color3.fromRGB(0,0,0),
+        Content = Color3.fromRGB(0,0,0),
+    }
+})
+
+local Y = X.New({Title = "Main"})
+local M = X.New({Title = "Modes"})
+local Z = X.New({Title = "Misc"})
+local Cred = X.New({Title = "Credits"})
+
+local function getNPC()
+    local dist, thing = math.huge, nil
+    local char = game.Players.LocalPlayer.Character
+    if not (char and char:FindFirstChild("HumanoidRootPart")) then 
+        return nil 
+    end
+    local myPos = char.HumanoidRootPart.Position
+    
+    for _, v in ipairs(game:GetService("Workspace").Worlds:GetDescendants()) do
+        local matchesDropdown = (getgenv().mobname == nil or v.Name == getgenv().mobname)
+        
+        if v:IsA("Model") and v.Parent and v.Parent.Name == "Enemies" and matchesDropdown and v:GetAttribute("EnemyDead") == false then
+            local hrp = v:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                local mag = (myPos - hrp.Position).Magnitude
+                if mag < dist then
+                    dist = mag
+                    thing = v
+                end
+            end
+        end
+    end
+    return thing
+end
+
+local function getNPCTrial()
+    local dist, thing = math.huge, nil
+    local char = game.Players.LocalPlayer.Character
+    if not (char and char:FindFirstChild("HumanoidRootPart")) then 
+        return nil 
+    end
+    local myPos = char.HumanoidRootPart.Position
+
+    pcall(function()
+        local enemyFolder = game:GetService("Workspace").TimeTrialArenas.Easy.Enemies
+        for _, v in ipairs(enemyFolder:GetChildren()) do
+            if v:IsA("Model") and v:GetAttribute("EnemyDead") ~= true then
+                local hrp = v:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    local mag = (myPos - hrp.Position).Magnitude
+                    if mag < dist then 
+                        dist = mag 
+                        thing = v 
+                    end
+                end
+            end
+        end
+    end)
+    return thing
+end
+
+local function getNPCMode()
+    local dist, thing = math.huge, nil
+    local char = game.Players.LocalPlayer.Character
+    if not (char and char:FindFirstChild("HumanoidRootPart")) then 
+        return nil 
+    end
+    local myPos = char.HumanoidRootPart.Position
+
+    pcall(function()
+        local enemyFolder = game:GetService("Workspace").DefenseArenas.World4.Enemies
+        for _, v in ipairs(enemyFolder:GetChildren()) do
+            if v:IsA("Model") and v:GetAttribute("EnemyDead") ~= true then
+                local hrp = v:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    local mag = (myPos - hrp.Position).Magnitude
+                    if mag < dist then 
+                        dist = mag 
+                        thing = v 
+                    end
+                end
+            end
+        end
+    end)
+    return thing
+end
+
+
+local function getNPCNinja()
+    local dist, thing = math.huge, nil
+    local char = game.Players.LocalPlayer.Character
+    if not (char and char:FindFirstChild("HumanoidRootPart")) then 
+        return nil 
+    end
+    local myPos = char.HumanoidRootPart.Position
+
+    pcall(function()
+        local enemyFolder = game:GetService("Workspace").RaidArenas.World1.Enemies
+        for _, v in ipairs(enemyFolder:GetChildren()) do
+            if v:IsA("Model") and v:GetAttribute("EnemyDead") ~= true then
+                local hrp = v:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    local mag = (myPos - hrp.Position).Magnitude
+                    if mag < dist then 
+                        dist = mag 
+                        thing = v 
+                    end
+                end
+            end
+        end
+    end)
+    return thing
+end
+
+Cred.Button({
+    Text = "Copy Discord",
+    Callback = function()
+        setclipboard("https://discord.gg")
+    end,
+})
+
+local VirtualUser = game:GetService("VirtualUser")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local ii = Y.Dropdown({
+    Text = "Select Mob",
+    Callback = function(Value)
+        getgenv().mobname = Value
+    end,
+    Options = NPCS
+})
+
+Y.Toggle({
+    Text = "AutoMob",
+    Callback = function(Value)
+        _G.AutoMob = Value
+        task.spawn(function()
+            while _G.AutoMob do 
+                task.wait()
+                pcall(function()
+                    local target = getNPC()
+                    local char = game.Players.LocalPlayer.Character
+                    if target and char and char:FindFirstChild("HumanoidRootPart") then
+                        char.HumanoidRootPart.CFrame = target:GetPivot() * CFrame.new(0, 0, 3)
+                    end
+                end)
+            end
+        end)
+    end,
+    Enabled = false
+})
+
+M.Toggle({
+    Text = "Auto Mob Trial",
+    Callback = function(Value)
+        _G.AutoMobT = Value
+        task.spawn(function()
+            while _G.AutoMobT do 
+                task.wait()
+                pcall(function()
+                    local target = getNPCTrial()
+                    local char = game.Players.LocalPlayer.Character
+                    if target and char and char:FindFirstChild("HumanoidRootPart") then
+                        char.HumanoidRootPart.CFrame = target:GetPivot() * CFrame.new(0, 0, 3)
+                    end
+                end)
+            end
+        end)
+    end,
+    Enabled = false
+})
+
+
+
+M.Toggle({
+    Text = "Auto Ninja",
+    Callback = function(Value)
+        _G.AutoMode1 = Value
+        task.spawn(function()
+            while _G.AutoMode1 do  
+                pcall(function()
+                    task.wait(5)
+                    local player = game:GetService("Players").LocalPlayer
+                    if player:GetAttribute("VisibilityContext") ~= "Raid:World1" then
+                        local args = {
+                            [1] = {
+                                [1] = {
+                                    ["__BridgeTuplePayload__"] = true,
+                                    ["Payload"] = {
+                                        [1] = "Create",
+                                        [2] = "World1",
+                                        ["n"] = 2
+                                    }
+                                },
+                                [2] = "u"
+                            }
+                        }
+                        game:GetService("ReplicatedStorage"):WaitForChild("BridgeNet2"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
+                    end
+                end) 
+            end
+        end)
+    end,
+    Enabled = false
+})
+
+M.Toggle({
+    Text = "Auto Mob Ninja",
+    Callback = function(Value)
+        _G.AutoMob1 = Value
+        task.spawn(function()
+            while _G.AutoMob1 do 
+                task.wait()
+                pcall(function()
+                    local target = getNPCNinja()
+                    local char = game.Players.LocalPlayer.Character
+                    if target and char and char:FindFirstChild("HumanoidRootPart") then
+                        char.HumanoidRootPart.CFrame = target:GetPivot() * CFrame.new(0, 0, 3)
+                    end
+                end)
+            end
+        end)
+    end,
+    Enabled = false
+})
+
+
+M.Toggle({
+    Text = "Auto Titan",
+    Callback = function(Value)
+        _G.AutoMode = Value
+        task.spawn(function()
+            while _G.AutoMode do 
+                task.wait(5)
+                pcall(function()
+                    local args = {
+                        [1] = {
+                            [1] = {
+                                ["__BridgeTuplePayload__"] = true,
+                                ["Payload"] = {
+                                    [1] = "Create",
+                                    [2] = "World4",
+                                    ["n"] = 2
+                                }
+                            },
+                            [2] = "&"
+                        }
+                    }
+                    game:GetService("ReplicatedStorage"):WaitForChild("BridgeNet2"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
+                end) 
+                task.wait(1) 
+            end 
+        end) 
+    end, 
+    Enabled = false
+})
+
+
+M.Toggle({
+    Text = "Auto Mob Titan",
+    Callback = function(Value)
+        _G.AutoMobMode = Value
+        task.spawn(function()
+            while _G.AutoMobMode do 
+                task.wait()
+                pcall(function()
+                    local target = getNPCMode()
+                    local char = game.Players.LocalPlayer.Character
+                    if target and char and char:FindFirstChild("HumanoidRootPart") then
+                        char.HumanoidRootPart.CFrame = target:GetPivot() * CFrame.new(0, 0, 3)
+                    end
+                end)
+            end
+        end)
+    end,
+    Enabled = false
+})
+
+Y.Button({
+    Text = "Refresh Enemies", 
+    Callback = function()
+        table.clear(NPCS)
+        for i, v in pairs(game:GetService("Workspace").Worlds:GetDescendants()) do
+            if v:IsA("Model") and v.Parent.Name == "Enemies" then
+                if not table.find(NPCS, tostring(v)) then
+                    table.insert(NPCS, tostring(v))
+                end
+            end
+        end
+        ii:SetOptions(NPCS)
+    end
+})
+
+Z.Slider({
+    Text = "WalkSpeed",
+    Callback = function(Value)
+        getgenv().WSValue = Value
+    end,
+    Min = 16,
+    Max = 500,
+    Def = 50
+})
+
+Z.Toggle({
+    Text = "Toggle WalkSpeed",
+    Callback = function(Value)
+        _G.WSToggle = Value
+
+        task.spawn(function()
+            while _G.WSToggle do 
+                task.wait()
+                local char = game.Players.LocalPlayer.Character
+                local hum = char and char:FindFirstChild("Humanoid")
+
+                if hum then
+                    hum.WalkSpeed = getgenv().WSValue or 50
+                end
+            end
+        end)
+    end,
+    Enabled = false
+})
