@@ -145,9 +145,6 @@ Cred.Button({
     end,
 })
 
-local VirtualUser = game:GetService("VirtualUser")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
 
 local ii = Y.Dropdown({
     Text = "Select Mob",
@@ -258,29 +255,31 @@ M.Toggle({
         _G.AutoMode = Value
         task.spawn(function()
             while _G.AutoMode do 
-                task.wait(5)
                 pcall(function()
-                    local args = {
-                        [1] = {
+                    local player = game:GetService("Players").LocalPlayer
+                    if player:GetAttribute("VisibilityContext") ~= "Defense:World4" then
+                        local args = {
                             [1] = {
-                                ["__BridgeTuplePayload__"] = true,
-                                ["Payload"] = {
-                                    [1] = "Create",
-                                    [2] = "World4",
-                                    ["n"] = 2
-                                }
-                            },
-                            [2] = "&"
+                                [1] = {
+                                    ["__BridgeTuplePayload__"] = true,
+                                    ["Payload"] = {
+                                        [1] = "Create",
+                                        [2] = "World4",
+                                        ["n"] = 2
+                                    }
+                                },
+                                [2] = "&"
+                            }
                         }
-                    }
-                    game:GetService("ReplicatedStorage"):WaitForChild("BridgeNet2"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
-                end) 
-                task.wait(1) 
+                        game:GetService("ReplicatedStorage"):WaitForChild("BridgeNet2"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
+                    end
+                end)
             end 
         end) 
     end, 
     Enabled = false
 })
+
 
 
 M.Toggle({
