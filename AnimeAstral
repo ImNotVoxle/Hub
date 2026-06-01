@@ -248,14 +248,14 @@ M.Toggle({
     Enabled = false
 })
 
-
 M.Toggle({
     Text = "Auto Titan",
     Callback = function(Value)
         _G.AutoMode = Value
         task.spawn(function()
-            while _G.AutoMode do 
+            while _G.AutoMode do  
                 pcall(function()
+                    task.wait(5)
                     local player = game:GetService("Players").LocalPlayer
                     if player:GetAttribute("VisibilityContext") ~= "Defense:World4" then
                         local args = {
@@ -272,14 +272,14 @@ M.Toggle({
                             }
                         }
                         game:GetService("ReplicatedStorage"):WaitForChild("BridgeNet2"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
+                        task.wait(1)
                     end
-                end)
-            end 
-        end) 
-    end, 
+                end) 
+            end
+        end)
+    end,
     Enabled = false
 })
-
 
 
 M.Toggle({
