@@ -162,23 +162,24 @@ Y.Toggle({
         _G.AutoStar = Value
         task.spawn(function()
             while _G.AutoStar do 
-                task.wait(0.1)
+                task.wait()
                 pcall(function()
-                                    local args = {
+                    local args = {
                         [1] = {
                             [1] = {
                                 ["__BridgeTuplePayload__"] = true,
                                 ["Payload"] = {
                                     [1] = starname,
-                                    
+                                    [2] = {},
                                     ["n"] = 2
                                 }
                             },
-                            [2] = "\\"
+                            [2] = "_"
                         }
                     }
 
                     game:GetService("ReplicatedStorage"):WaitForChild("BridgeNet2"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
+
                 end)
             end
         end)
