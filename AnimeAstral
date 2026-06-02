@@ -257,10 +257,12 @@ M.Toggle({
                                         ["n"] = 2
                                     }
                                 },
-                                [2] = "u"
+                                [2] = "y"
                             }
                         }
+
                         game:GetService("ReplicatedStorage"):WaitForChild("BridgeNet2"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
+
                     end
                 end) 
             end
