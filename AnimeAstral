@@ -60,6 +60,7 @@ local X = Material.Load({
 
 local Y = X.New({Title = "Main"})
 local M = X.New({Title = "Modes"})
+local G = X.New({Title = "Gacha"})
 local Z = X.New({Title = "Misc"})
 local Cred = X.New({Title = "Credits"})
 
@@ -213,6 +214,9 @@ Y.Toggle({
     end,
     Enabled = false
 })
+
+
+
 
 local ii = Y.Dropdown({
     Text = "Select Mob",
@@ -382,6 +386,66 @@ Y.Button({
         ii:SetOptions(NPCS)
     end
 })
+
+local gachaOptions = {"World1", "World2", "World3", "World4"}
+
+local i = G.Dropdown({
+    Text = "Select Gacha",
+    Callback = function(Value)
+        getgenv().gachaname = Value
+    end,
+    Options = gachaOptions
+})
+
+G.Toggle({
+    Text = "Auto Gacha",
+    Callback = function(Value)
+        _G.AutoG = Value
+        task.spawn(function()
+            while _G.AutoG do 
+                task.wait(0.1)
+                pcall(function()
+                    local args = {
+                        [1] = {
+                            [1] = gachaname,
+                            [2] = "L"
+                        }
+                    }
+                    game:GetService("ReplicatedStorage"):WaitForChild("BridgeNet2"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
+                end)
+            end
+        end)
+    end,
+    Enabled = false
+})
+
+G.Toggle({
+    Text = "Roll Every Gacha",
+    Callback = function(Value)
+        _G.AutoG1 = Value
+        task.spawn(function()
+            while _G.AutoG1 do 
+                for _, worldName in ipairs(gachaOptions) do
+                    if not _G.AutoG1 then break end 
+                    pcall(function()
+                        local args = {
+                            [1] = {
+                                [1] = worldName,
+                                [2] = "L"
+                            }
+                        }
+                        game:GetService("ReplicatedStorage"):WaitForChild("BridgeNet2"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
+                    end)
+                    task.wait(0.05) 
+                end
+                task.wait(0.1)
+            end
+        end)
+    end,
+    Enabled = false
+})
+
+
 
 Z.Slider({
     Text = "WalkSpeed",
