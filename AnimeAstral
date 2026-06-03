@@ -1,3 +1,34 @@
+getgenv().BridgeNetWorld1ID = getgenv().BridgeNetWorld1ID or "{"
+getgenv().BridgeNetWorld4ID = getgenv().BridgeNetWorld4ID or "&"
+getgenv().BridgeNetStarID = getgenv().BridgeNetStarID or "a"
+getgenv().starname = getgenv().starname or "World1"
+
+if not getgenv().BridgeNetHookLoaded then
+    getgenv().BridgeNetHookLoaded = true
+    local oldNamecall
+    oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+        local method = getnamecallmethod()
+        local args = {...}
+        if self.Name == "dataRemoteEvent" and method == "FireServer" then
+            if type(args[1]) == "table" and args[1][1] and args[1][1]["__BridgeTuplePayload__"] then
+                local payload = args[1][1]["Payload"]
+                local liveID = args[1][2]
+                if payload and liveID then
+                    if payload[1] == "Create" then
+                        if payload[2] == "World1" and liveID ~= getgenv().BridgeNetWorld1ID then
+                            getgenv().BridgeNetWorld1ID = liveID
+                        elseif payload[2] == "World4" and liveID ~= getgenv().BridgeNetWorld4ID then
+                            getgenv().BridgeNetWorld4ID = liveID
+                        end
+                    elseif payload[1] == getgenv().starname and liveID ~= getgenv().BridgeNetStarID then
+                        getgenv().BridgeNetStarID = liveID
+                    end
+                end
+            end
+        end
+        return oldNamecall(self, ...)
+    end)
+end
 local NPCS = {}
 
 for i, v in pairs(game:GetService("Workspace").Worlds:GetDescendants()) do
@@ -169,17 +200,15 @@ Y.Toggle({
                             [1] = {
                                 ["__BridgeTuplePayload__"] = true,
                                 ["Payload"] = {
-                                    [1] = starname,
+                                    [1] = getgenv().starname,
                                     [2] = {},
                                     ["n"] = 2
                                 }
                             },
-                            [2] = "a"
+                            [2] = getgenv().BridgeNetStarID
                         }
                     }
-
                     game:GetService("ReplicatedStorage"):WaitForChild("BridgeNet2"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
-
                 end)
             end
         end)
@@ -192,7 +221,7 @@ local ii = Y.Dropdown({
     Callback = function(Value)
         getgenv().mobname = Value
     end,
-    Options = NPCS
+    Options = typeof(NPCS) == "table" and NPCS or {}
 })
 
 Y.Toggle({
@@ -235,8 +264,6 @@ M.Toggle({
     Enabled = false
 })
 
-
-
 M.Toggle({
     Text = "Auto Ninja",
     Callback = function(Value)
@@ -257,12 +284,10 @@ M.Toggle({
                                         ["n"] = 2
                                     }
                                 },
-                                [2] = "{"
+                                [2] = getgenv().BridgeNetWorld1ID
                             }
                         }
-
                         game:GetService("ReplicatedStorage"):WaitForChild("BridgeNet2"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
-
                     end
                 end) 
             end
@@ -311,7 +336,7 @@ M.Toggle({
                                         ["n"] = 2
                                     }
                                 },
-                                [2] = "&"
+                                [2] = getgenv().BridgeNetWorld4ID
                             }
                         }
                         game:GetService("ReplicatedStorage"):WaitForChild("BridgeNet2"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
