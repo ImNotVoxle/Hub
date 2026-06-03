@@ -1,3 +1,6 @@
+getgenv().BridgeNetWorld1ID = getgenv().BridgeNetWorld1ID or "{"
+getgenv().BridgeNetWorld4ID = getgenv().BridgeNetWorld4ID or "&"
+getgenv().BridgeNetStarID = getgenv().BridgeNetStarID or "a"
 if not getgenv().BridgeNetHookLoaded then
     getgenv().BridgeNetHookLoaded = true
     local oldNamecall
