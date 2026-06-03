@@ -162,7 +162,7 @@ Y.Toggle({
         _G.AutoStar = Value
         task.spawn(function()
             while _G.AutoStar do 
-                task.wait()
+                task.wait(0.1)
                 pcall(function()
                     local args = {
                         [1] = {
@@ -174,7 +174,7 @@ Y.Toggle({
                                     ["n"] = 2
                                 }
                             },
-                            [2] = "_"
+                            [2] = "a"
                         }
                     }
 
@@ -257,7 +257,7 @@ M.Toggle({
                                         ["n"] = 2
                                     }
                                 },
-                                [2] = "y"
+                                [2] = "{"
                             }
                         }
 
