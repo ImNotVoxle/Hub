@@ -342,7 +342,6 @@ M.Toggle({
                             }
                         }
                         game:GetService("ReplicatedStorage"):WaitForChild("BridgeNet2"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
-                        task.wait(1)
                     end
                 end) 
             end
