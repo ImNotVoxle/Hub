@@ -57,16 +57,20 @@ if targetTycoon and targetTycoon:FindFirstChild("Locations") then
     end
 end
 
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
 local function getLEMON()
+    local character = LocalPlayer.Character
+    if not character then return nil, nil end
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return nil, nil end
+    
+    local myPos = hrp.Position
     local dist = math.huge 
     local closestClickPart = nil
     local closestDetector = nil
     
-    if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then 
-        return nil, nil 
-    end
-    local myPos = LocalPlayer.Character.HumanoidRootPart.Position
-
     for _, tree in ipairs(workspace:GetDescendants()) do
         if tree:IsA("Model") and tree.Name == "LemonTree" then
             for _, fruit in ipairs(tree:GetChildren()) do
@@ -89,8 +93,9 @@ local function getLEMON()
     
     return closestClickPart, closestDetector
 end
+
 Y.Toggle({
-    Text = "Auto Pick Lemons",
+    Text = "Lemon Aura",
     Callback = function(Value)
         _G.AutoPick = Value
         if not Value then return end
@@ -98,15 +103,16 @@ Y.Toggle({
         task.spawn(function()
             while _G.AutoPick do
                 local success, err = pcall(function()
-                    if LocalPlayer.Character then
-                        local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                    local character = LocalPlayer.Character
+                    if character then
+                        local hrp = character:FindFirstChild("HumanoidRootPart")
                         local clickPart, detector = getLEMON()
                         
                         if hrp and clickPart and detector then
                             clickPart.CFrame = hrp.CFrame
-                            task.wait(0.05) 
+                            task.wait(0.1)
                             
-                            if detector and detector.Parent then
+                            if detector and detector.Parent and _G.AutoPick then
                                 fireclickdetector(detector)
                             end
                         end
@@ -114,16 +120,15 @@ Y.Toggle({
                 end)
                 
                 if not success and err then
-                    warn("AutoPick Error: " .. tostring(err))
+                    warn("Lemon Aura Error: " .. tostring(err))
                 end
                 
-                task.wait(0.05) 
+                task.wait(0.2)
             end
         end)
     end,
     Enabled = false
 })
-
 
 
 Y.Toggle({
