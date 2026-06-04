@@ -1,1 +1,216 @@
+local Material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kinlei/MaterialLua/master/Module.lua"))()
 
+local X = Material.Load({
+    Title = "Voxle",
+    Style = 2,
+    SizeX = 300,
+    SizeY = 350,
+    Theme = "Light",
+    ColorOverrides = {
+        MainFrame = Color3.fromRGB(0,0,0),
+        Toggle = Color3.fromRGB(124,37,255),
+        ToggleAccent = Color3.fromRGB(255,255,255), 
+        Dropdown = Color3.fromRGB(124,37,255),
+        DropdownAccent = Color3.fromRGB(255,255,255),
+        Slider = Color3.fromRGB(124,37,255),
+        SliderAccent = Color3.fromRGB(255,255,255),
+        NavBarAccent = Color3.fromRGB(0,0,0),
+        Content = Color3.fromRGB(0,0,0),
+    }
+})
+
+local Y = X.New({Title = "Main"})
+local Z = X.New({Title = "Misc"})
+local Cred = X.New({Title = "Credits"})
+
+Cred.Button({
+    Text = "Copy Discord",
+    Callback = function()
+        setclipboard("https://discord.gg/gcHGgT3nfp")
+    end,
+})
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local player = game.Players.LocalPlayer
+
+local function GetMyTycoon()
+    for _, tycoon in ipairs(workspace:GetChildren()) do
+        local ownerValue = tycoon:FindFirstChild("Owner")
+        if ownerValue and ownerValue.Value == LocalPlayer then
+            return tycoon
+        end
+    end
+    return nil
+end
+
+local LocationsList = {}
+local myTycoonBase = GetMyTycoon()
+local targetTycoon = myTycoonBase or workspace:FindFirstChild("Tycoon6") or workspace:FindFirstChild("Tycoon8")
+
+if targetTycoon and targetTycoon:FindFirstChild("Locations") then
+    for _, v in ipairs(targetTycoon.Locations:GetChildren()) do
+        if v:IsA("Part") then
+            if not table.find(LocationsList, v.Name) then
+                table.insert(LocationsList, v.Name)
+            end
+        end
+    end
+end
+
+local visitedTrees = {}
+
+local function getLEMON()
+    local dist = math.huge 
+    local thing = nil
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return nil end
+    local myPos = player.Character.HumanoidRootPart.Position
+
+    for _, v in ipairs(workspace:GetDescendants()) do
+        if v:IsA("Model") and v.Name == "LemonTree" and not visitedTrees[v] then
+            local fruit = v:FindFirstChild("Fruit")
+            local clickPart = fruit and fruit:FindFirstChild("ClickPart")
+            if clickPart then
+                local detector = clickPart:FindFirstChildOfClass("ClickDetector")
+                if detector then 
+                    local mag = (myPos - clickPart.Position).Magnitude
+                    if mag < dist then 
+                        dist = mag 
+                        thing = v 
+                    end
+                end
+            end
+        end
+    end
+    
+    if not thing then
+        table.clear(visitedTrees)
+    end
+    
+    return thing
+end
+
+Y.Toggle({
+    Text = "Auto Pick Lemons",
+    Callback = function(Value)
+        _G.AutoPick = Value
+        if not Value then return end
+        
+        task.spawn(function()
+            while _G.AutoPick do
+                pcall(function()
+                    local closestTree = getLEMON()
+                    if closestTree and player.Character then
+                        local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+                        local fruit = closestTree:FindFirstChild("Fruit")
+                        local clickPart = fruit and fruit:FindFirstChild("ClickPart")
+                        
+                        if hrp and clickPart then
+                            local detector = clickPart:FindFirstChildOfClass("ClickDetector")
+                            hrp.CFrame = clickPart.CFrame * CFrame.new(0, 2, 0)
+                            if detector then
+                                visitedTrees[closestTree] = true
+                                task.spawn(function()
+                                    fireclickdetector(detector)
+                                end)
+                            end
+                        end
+                    end
+                end)
+                task.wait(0.15) 
+            end
+        end)
+    end,
+    Enabled = false
+})
+
+Y.Toggle({
+    Text = "Auto Click (All Locations)",
+    Callback = function(Value)
+        _G.AutoClick = Value
+        task.spawn(function()
+            local myTycoon = GetMyTycoon()
+            while _G.AutoClick do 
+                task.wait(1)
+                
+                if not myTycoon then
+                    myTycoon = GetMyTycoon()
+                end
+                
+                if myTycoon and #LocationsList > 0 then
+                    for _, rawLocation in ipairs(LocationsList) do
+                        if not _G.AutoClick then break end
+                        
+                        local formattedLocation = string.gsub(rawLocation, "%s+", "")
+                        
+                        pcall(function()
+                            myTycoon:WaitForChild("Remotes"):WaitForChild("WakeIncomeStream"):InvokeServer(formattedLocation)
+                        end)
+                    end
+                end
+            end
+        end)
+    end,
+    Enabled = false
+})
+
+Y.Dropdown({
+    Text = "Select Location",
+    Callback = function(Value)
+        getgenv().locname = Value
+    end,
+    Options = LocationsList 
+})
+
+Y.Toggle({
+    Text = "Auto Upgrade",
+    Callback = function(Value)
+        _G.AutoUpgrade = Value
+        task.spawn(function()
+            local myTycoon = GetMyTycoon()
+            while _G.AutoUpgrade do 
+                task.wait(1)
+                if not myTycoon then
+                    myTycoon = GetMyTycoon()
+                end
+                local currentLoc = getgenv().locname
+                if myTycoon and currentLoc then
+                    pcall(function()
+                        myTycoon:WaitForChild("Purchases"):WaitForChild(currentLoc):WaitForChild(currentLoc):WaitForChild(currentLoc):WaitForChild("Upgrade"):InvokeServer(1)
+                    end)
+                end
+            end
+        end)
+    end,
+    Enabled = false
+})
+
+Z.Slider({
+    Text = "WalkSpeed",
+    Callback = function(Value)
+        getgenv().WSValue = Value
+    end,
+    Min = 16,
+    Max = 500,
+    Def = 50
+})
+
+Z.Toggle({
+    Text = "Toggle WalkSpeed",
+    Callback = function(Value)
+        _G.WSToggle = Value
+
+        task.spawn(function()
+            while _G.WSToggle do 
+                task.wait()
+                local char = LocalPlayer.Character
+                local hum = char and char:FindFirstChild("Humanoid")
+
+                if hum then
+                    hum.WalkSpeed = getgenv().WSValue or 50
+                end
+            end
+        end)
+    end,
+    Enabled = false
+})
