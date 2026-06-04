@@ -31,6 +31,7 @@ Cred.Button({
 })
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local player = game.Players.LocalPlayer
 
 local function GetMyTycoon()
     for _, tycoon in ipairs(workspace:GetChildren()) do
@@ -42,8 +43,19 @@ local function GetMyTycoon()
     return nil
 end
 
+local LocationsList = {}
 local myTycoonBase = GetMyTycoon()
 local targetTycoon = myTycoonBase or workspace:FindFirstChild("Tycoon6") or workspace:FindFirstChild("Tycoon8")
+
+if targetTycoon and targetTycoon:FindFirstChild("Locations") then
+    for _, v in ipairs(targetTycoon.Locations:GetChildren()) do
+        if v:IsA("Part") then
+            if not table.find(LocationsList, v.Name) then
+                table.insert(LocationsList, v.Name)
+            end
+        end
+    end
+end
 
 local function getLEMON()
     local dist = math.huge 
