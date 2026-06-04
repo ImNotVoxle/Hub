@@ -29,7 +29,6 @@ Cred.Button({
         setclipboard("https://discord.gg/gcHGgT3nfp")
     end,
 })
-
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
@@ -56,19 +55,20 @@ local function getLEMON()
     end
     local myPos = LocalPlayer.Character.HumanoidRootPart.Position
 
-    for _, v in ipairs(workspace:GetDescendants()) do
-        if v:IsA("Model") and v.Name == "LemonTree" then
-            local fruit = v:FindFirstChild("Fruit")
-            if fruit and fruit:IsA("BasePart") and fruit.Transparency < 1 then
-                local clickPart = fruit:FindFirstChild("ClickPart") or fruit
-                local detector = clickPart:FindFirstChildOfClass("ClickDetector")
-                
-                if detector then 
-                    local mag = (myPos - clickPart.Position).Magnitude
-                    if mag < dist then 
-                        dist = mag 
-                        closestClickPart = clickPart
-                        closestDetector = detector
+    for _, tree in ipairs(workspace:GetDescendants()) do
+        if tree:IsA("Model") and tree.Name == "LemonTree" then
+            for _, fruit in ipairs(tree:GetChildren()) do
+                if fruit.Name == "Fruit" and fruit:IsA("BasePart") and fruit.Transparency < 1 then
+                    local clickPart = fruit:FindFirstChild("ClickPart") or fruit
+                    local detector = clickPart:FindFirstChildOfClass("ClickDetector") or fruit:FindFirstChildOfClass("ClickDetector")
+                    
+                    if detector then 
+                        local mag = (myPos - clickPart.Position).Magnitude
+                        if mag < dist then 
+                            dist = mag 
+                            closestClickPart = clickPart
+                            closestDetector = detector
+                        end
                     end
                 end
             end
@@ -90,9 +90,11 @@ Y.Toggle({
                     if LocalPlayer.Character then
                         local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
                         local clickPart, detector = getLEMON()
+                        
                         if hrp and clickPart and detector then
-                            hrp.CFrame = clickPart.CFrame * CFrame.new(0, 2, 0)                        
+                            hrp.CFrame = clickPart.CFrame * CFrame.new(0, 2, 0)
                             task.wait(0.05) 
+                            
                             if detector and detector.Parent then
                                 fireclickdetector(detector)
                             end
@@ -102,8 +104,9 @@ Y.Toggle({
                 
                 if not success and err then
                     warn("AutoPick Error: " .. tostring(err))
-                end                
-                task.wait(0.1) 
+                end
+                
+                task.wait(0.05) 
             end
         end)
     end,
