@@ -89,7 +89,6 @@ local function getLEMON()
     
     return closestClickPart, closestDetector
 end
-
 Y.Toggle({
     Text = "Auto Pick Lemons",
     Callback = function(Value)
@@ -104,7 +103,7 @@ Y.Toggle({
                         local clickPart, detector = getLEMON()
                         
                         if hrp and clickPart and detector then
-                            hrp.CFrame = clickPart.CFrame * CFrame.new(0, 2, 0)
+                            clickPart.CFrame = hrp.CFrame
                             task.wait(0.05) 
                             
                             if detector and detector.Parent then
@@ -124,6 +123,7 @@ Y.Toggle({
     end,
     Enabled = false
 })
+
 
 
 Y.Toggle({
