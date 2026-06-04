@@ -32,7 +32,6 @@ Cred.Button({
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local player = game.Players.LocalPlayer
 
 local function GetMyTycoon()
     for _, tycoon in ipairs(workspace:GetChildren()) do
@@ -44,50 +43,39 @@ local function GetMyTycoon()
     return nil
 end
 
-local LocationsList = {}
 local myTycoonBase = GetMyTycoon()
 local targetTycoon = myTycoonBase or workspace:FindFirstChild("Tycoon6") or workspace:FindFirstChild("Tycoon8")
 
-if targetTycoon and targetTycoon:FindFirstChild("Locations") then
-    for _, v in ipairs(targetTycoon.Locations:GetChildren()) do
-        if v:IsA("Part") then
-            if not table.find(LocationsList, v.Name) then
-                table.insert(LocationsList, v.Name)
-            end
-        end
-    end
-end
-
-local visitedTrees = {}
-
 local function getLEMON()
     local dist = math.huge 
-    local thing = nil
-    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return nil end
-    local myPos = player.Character.HumanoidRootPart.Position
+    local closestClickPart = nil
+    local closestDetector = nil
+    
+    if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then 
+        return nil, nil 
+    end
+    local myPos = LocalPlayer.Character.HumanoidRootPart.Position
 
     for _, v in ipairs(workspace:GetDescendants()) do
-        if v:IsA("Model") and v.Name == "LemonTree" and not visitedTrees[v] then
+        if v:IsA("Model") and v.Name == "LemonTree" then
             local fruit = v:FindFirstChild("Fruit")
-            local clickPart = fruit and fruit:FindFirstChild("ClickPart")
-            if clickPart then
+            if fruit and fruit:IsA("BasePart") and fruit.Transparency < 1 then
+                local clickPart = fruit:FindFirstChild("ClickPart") or fruit
                 local detector = clickPart:FindFirstChildOfClass("ClickDetector")
+                
                 if detector then 
                     local mag = (myPos - clickPart.Position).Magnitude
                     if mag < dist then 
                         dist = mag 
-                        thing = v 
+                        closestClickPart = clickPart
+                        closestDetector = detector
                     end
                 end
             end
         end
     end
     
-    if not thing then
-        table.clear(visitedTrees)
-    end
-    
-    return thing
+    return closestClickPart, closestDetector
 end
 
 Y.Toggle({
@@ -98,31 +86,30 @@ Y.Toggle({
         
         task.spawn(function()
             while _G.AutoPick do
-                pcall(function()
-                    local closestTree = getLEMON()
-                    if closestTree and player.Character then
-                        local hrp = player.Character:FindFirstChild("HumanoidRootPart")
-                        local fruit = closestTree:FindFirstChild("Fruit")
-                        local clickPart = fruit and fruit:FindFirstChild("ClickPart")
-                        
-                        if hrp and clickPart then
-                            local detector = clickPart:FindFirstChildOfClass("ClickDetector")
-                            hrp.CFrame = clickPart.CFrame * CFrame.new(0, 2, 0)
-                            if detector then
-                                visitedTrees[closestTree] = true
-                                task.spawn(function()
-                                    fireclickdetector(detector)
-                                end)
+                local success, err = pcall(function()
+                    if LocalPlayer.Character then
+                        local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                        local clickPart, detector = getLEMON()
+                        if hrp and clickPart and detector then
+                            hrp.CFrame = clickPart.CFrame * CFrame.new(0, 2, 0)                        
+                            task.wait(0.05) 
+                            if detector and detector.Parent then
+                                fireclickdetector(detector)
                             end
                         end
                     end
                 end)
-                task.wait(0.15) 
+                
+                if not success and err then
+                    warn("AutoPick Error: " .. tostring(err))
+                end                
+                task.wait(0.1) 
             end
         end)
     end,
     Enabled = false
 })
+
 
 Y.Toggle({
     Text = "Auto Click (All Locations)",
