@@ -201,6 +201,39 @@ Y.Toggle({
     Enabled = false
 })
 
+Y.Toggle({
+    Text = "Auto Buy",
+    Callback = function(Value)
+        _G.AutoBuy = Value
+        if not Value then return end
+        
+        task.spawn(function()
+            if not targetTycoon then return end
+            local PurchasesFolder = targetTycoon:WaitForChild("Purchases", 5)
+            if not PurchasesFolder then return end
+            
+            while _G.AutoBuy do
+                for _, tycoon in ipairs(PurchasesFolder:GetChildren()) do
+                    for _, obj in ipairs(tycoon:GetDescendants()) do
+                        if not _G.AutoBuy then break end
+                        
+                        if obj:IsA("RemoteFunction") and obj.Name == "Purchase" then
+                            task.spawn(function()
+                                pcall(function()
+                                    obj:InvokeServer(false)
+                                end)
+                            end)
+                        end
+                    end
+                end
+                task.wait(1.5)
+            end
+        end)
+    end,
+    Enabled = false
+})
+
+
 Y.Dropdown({
     Text = "Select Location",
     Callback = function(Value)
