@@ -297,6 +297,40 @@ Y.Toggle({
 })
 
 M.Toggle({
+    Text = "Auto Easy Trial",
+    Callback = function(Value)
+        _G.AutoMode2 = Value
+        task.spawn(function()
+            while _G.AutoMode2 do  
+                pcall(function()
+                    task.wait(5)
+                    local player = game:GetService("Players").LocalPlayer
+                    if player:GetAttribute("VisibilityContext") ~= "Trial:Easy" then
+                    local Event = game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent
+                    Event:FireServer(
+                        {
+                            {
+                                __BridgeTuplePayload__ = true,
+                                Payload = {
+                                    "Join",
+                                    "Easy",
+                                    n = 2
+                                }
+                            },
+                            "\xAD"
+                        }
+                    )
+                    end
+                end) 
+            end
+        end)
+    end,
+    Enabled = false
+})
+
+
+
+M.Toggle({
     Text = "Auto Mob Trial",
     Callback = function(Value)
         _G.AutoMobT = Value
