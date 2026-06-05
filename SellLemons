@@ -261,3 +261,11 @@ Z.Toggle({
     end,
     Enabled = false
 })
+Y.Button({
+    Text = "Collect Keys",
+    Callback = function()
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = workspace.Map.Sewer.CashVine.VineKey.CFrame
+        task.wait(1)
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = workspace.Map.Sewer.SewerAlien.UFOKey.CFrame
+    end,
+})
