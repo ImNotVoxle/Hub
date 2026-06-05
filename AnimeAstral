@@ -175,15 +175,18 @@ Cred.Button({
     end,
 })
 
-local ii = Y.Dropdown({
+local currentWorld = "1"
+
+    Y.Dropdown({
     Text = "Select Star",
     Callback = function(Value)
         getgenv().starname = Value
+        local worldNum = string.match(Value, "%d+")
+        if worldNum then
+            currentWorld = worldNum
+        end
     end,
-    Options = {"World1",
-"World2",
-"World3",
-"World4"}
+    Options = {"World1", "World2", "World3", "World4"}
 })
 
 Y.Toggle({
@@ -215,6 +218,53 @@ Y.Toggle({
     Enabled = false
 })
 
+Y.Toggle({
+    Text = "Auto Star (Without Gamepass)",
+    Callback = function(Value)
+        _G.AutoStar = Value
+        task.spawn(function()
+            while _G.AutoStar do 
+                task.wait(0.1)
+                pcall(function()
+                    local targetWorld = workspace.Worlds:FindFirstChild(currentWorld)
+                    if not targetWorld then return end
+                    
+                    for _, aura in ipairs(targetWorld.Map.Auras:GetChildren()) do
+                        if not _G.AutoStar then break end
+                        
+                        if aura:IsA("UnionOperation") and aura.Name == "AuraCirculo" then
+                            local star = aura:FindFirstChild("Star")
+                            if star then
+                                local character = game.Players.LocalPlayer.Character
+                                if character then
+                                    character:PivotTo(star:GetPivot())
+                                    task.wait(0.1)
+                                    
+                                    local args = {
+                                        [1] = {
+                                            [1] = {
+                                                ["__BridgeTuplePayload__"] = true,
+                                                ["Payload"] = {
+                                                    [1] = getgenv().starname,
+                                                    [2] = {},
+                                                    ["n"] = 2
+                                                }
+                                            },
+                                            [2] = getgenv().BridgeNetStarID
+                                        }
+                                    }
+                                    game:GetService("ReplicatedStorage"):WaitForChild("BridgeNet2"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
+                                    task.wait(0.1)
+                                end
+                            end
+                        end
+                    end
+                end)
+            end
+        end)
+    end,
+    Enabled = false
+})
 
 
 
