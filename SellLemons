@@ -227,7 +227,7 @@ Y.Toggle({
                         end
                     end
                 end
-                task.wait(1.5)
+                task.wait(.1)
             end
         end)
     end,
