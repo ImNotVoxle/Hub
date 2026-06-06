@@ -20,6 +20,7 @@ local X = Material.Load({
 })
 
 local Y = X.New({Title = "Main"})
+local S = X.New({Title = "Stats"})
 local Z = X.New({Title = "Misc"})
 local Cred = X.New({Title = "Credits"})
 
@@ -233,37 +234,41 @@ Y.Toggle({
     Enabled = false
 })
 
-
-Y.Dropdown({
-    Text = "Select Location",
+Y.TextField({
+    Text = "Amount of Upgrades",
     Callback = function(Value)
-        getgenv().locname = Value
+        _G.UpgradeNum = tonumber(Value) or 1
     end,
-    Options = LocationsList 
 })
 
 Y.Toggle({
-    Text = "Auto Upgrade",
+    Text = "Auto Upgrade All",
     Callback = function(Value)
         _G.AutoUpgrade = Value
         task.spawn(function()
             local myTycoon = GetMyTycoon()
             while _G.AutoUpgrade do 
-                task.wait(1)
+                task.wait(0.5)
                 if not myTycoon then
                     myTycoon = GetMyTycoon()
                 end
-                local currentLoc = getgenv().locname
-                if myTycoon and currentLoc then
-                    pcall(function()
-                        myTycoon:WaitForChild("Purchases"):WaitForChild(currentLoc):WaitForChild(currentLoc):WaitForChild(currentLoc):WaitForChild("Upgrade"):InvokeServer(1)
-                    end)
+                if myTycoon and myTycoon:FindFirstChild("Purchases") then
+                    for _, v in ipairs(myTycoon.Purchases:GetDescendants()) do
+                        if not _G.AutoUpgrade then break end
+                        if v:IsA("RemoteFunction") and v.Name == "Upgrade" then
+                            pcall(function()
+                                local amount = _G.UpgradeNum or 1
+                                v:InvokeServer(amount)
+                            end)
+                        end
+                    end
                 end
             end
         end)
     end,
     Enabled = false
 })
+
 
 Z.Slider({
     Text = "WalkSpeed",
@@ -294,7 +299,7 @@ Z.Toggle({
     end,
     Enabled = false
 })
-Y.Button({
+Z.Button({
     Text = "Collect Keys",
     Callback = function()
         game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = workspace.Map.Sewer.CashVine.VineKey.CFrame
@@ -302,3 +307,4 @@ Y.Button({
         game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = workspace.Map.Sewer.SewerAlien.UFOKey.CFrame
     end,
 })
+
