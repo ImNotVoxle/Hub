@@ -11,7 +11,7 @@ local Window = Rayfield:CreateWindow({
     },
     KeySystem = false,
     Theme = "Default",
-    ToggleUIKeybind = Enum.KeyCode.LeftAlt
+    ToggleUIKeybind = Enum.KeyCode.RightAlt
 })
 
 local Players = game:GetService("Players")
