@@ -1,1 +1,10 @@
-loadstring(game:HttpGet('https://raw.githubusercontent.com/ImNotVoxle/Hub/refs/heads/main/AnimeAstral'))()
+local Games = {
+    [79268393072444] = "https://raw.githubusercontent.com/ImNotVoxle/Hub/refs/heads/main/SellLemons"
+}
+
+local Universal = "https://raw.githubusercontent.com/ImNotVoxle/Hub/refs/heads/main/universal"
+
+local CurrentPlaceId = game.PlaceId
+local ScriptUrl = Games[CurrentPlaceId] or Universal
+
+loadstring(game:HttpGet(ScriptUrl))()
