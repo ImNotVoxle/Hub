@@ -1,0 +1,367 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Universal Script",
+    LoadingTitle = "Voxle Hub",
+    LoadingSubtitle = "by Keybrew",
+    ConfigurationSaving = {
+        Enabled = false,
+        FolderName = "VoxleHubConfigs",
+        FileName = "Universal"
+    },
+    KeySystem = false,
+    Theme = "Default",
+    ToggleUIKeybind = Enum.KeyCode.LeftAlt
+})
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+
+local MainTab = Window:CreateTab("Main", 4483362458) 
+local CreditsTab = Window:CreateTab("Credits", 4483362458)
+
+shared.InfJumpEnabled = false
+shared.FlyEnabled = false
+shared.EspEnabled = false
+shared.NoclipEnabled = false
+shared.FlySpeed = 50
+
+shared.WalkSpeedEnabled = false
+shared.JumpPowerEnabled = false
+shared.TargetWalkSpeed = 16
+shared.TargetJumpPower = 50
+
+shared.FlyConnection = nil
+shared.NoclipConnection = nil
+shared.EspConnections = {}
+shared.EspFolder = Workspace:FindFirstChild("VoxleESP") or Instance.new("Folder", Workspace)
+shared.EspFolder.Name = "VoxleESP"
+
+MainTab:CreateSection("Movement Modifications")
+
+MainTab:CreateSlider({
+    Name = "WalkSpeed",
+    Range = {16, 250},
+    Increment = 1,
+    Suffix = "Speed",
+    CurrentValue = 16,
+    Flag = "WalkSpeedSlider",
+    Callback = function(Value)
+        shared.TargetWalkSpeed = Value
+        if shared.WalkSpeedEnabled then
+            local Char = LocalPlayer.Character
+            local Hum = Char and Char:FindFirstChildOfClass("Humanoid")
+            if Hum then Hum.WalkSpeed = Value end
+        end
+    end,
+})
+
+MainTab:CreateToggle({
+    Name = "Enable WalkSpeed",
+    CurrentValue = false,
+    Flag = "WalkSpeedToggle",
+    Callback = function(Value)
+        shared.WalkSpeedEnabled = Value
+        if not Value then
+            local Char = LocalPlayer.Character
+            local Hum = Char and Char:FindFirstChildOfClass("Humanoid")
+            if Hum then Hum.WalkSpeed = 16 end
+        end
+    end,
+})
+
+MainTab:CreateSlider({
+    Name = "JumpPower",
+    Range = {50, 500},
+    Increment = 1,
+    Suffix = "Power",
+    CurrentValue = 50,
+    Flag = "JumpPowerSlider",
+    Callback = function(Value)
+        shared.TargetJumpPower = Value
+        if shared.JumpPowerEnabled then
+            local Char = LocalPlayer.Character
+            local Hum = Char and Char:FindFirstChildOfClass("Humanoid")
+            if Hum then
+                Hum.UseJumpPower = true
+                Hum.JumpPower = Value
+            end
+        end
+    end,
+})
+
+MainTab:CreateToggle({
+    Name = "Enable JumpPower",
+    CurrentValue = false,
+    Flag = "JumpPowerToggle",
+    Callback = function(Value)
+        shared.JumpPowerEnabled = Value
+        if not Value then
+            local Char = LocalPlayer.Character
+            local Hum = Char and Char:FindFirstChildOfClass("Humanoid")
+            if Hum then 
+                Hum.JumpPower = 50 
+            end
+        end
+    end,
+})
+
+RunService.RenderStepped:Connect(function()
+    local Char = LocalPlayer.Character
+    local Hum = Char and Char:FindFirstChildOfClass("Humanoid")
+    if not Hum then return end
+    
+    if shared.WalkSpeedEnabled then
+        if Hum.WalkSpeed ~= shared.TargetWalkSpeed then
+            Hum.WalkSpeed = shared.TargetWalkSpeed
+        end
+    end
+    
+    if shared.JumpPowerEnabled then
+        if not Hum.UseJumpPower then
+            Hum.UseJumpPower = true
+        end
+        if Hum.JumpPower ~= shared.TargetJumpPower then
+            Hum.JumpPower = shared.TargetJumpPower
+        end
+    end
+end)
+
+MainTab:CreateToggle({
+    Name = "Infinite Jump",
+    CurrentValue = false,
+    Flag = "InfJumpToggle",
+    Callback = function(Value)
+        shared.InfJumpEnabled = Value
+    end,
+})
+
+UserInputService.JumpRequest:Connect(function()
+    if shared.InfJumpEnabled then
+        local Char = LocalPlayer.Character
+        local Hum = Char and Char:FindFirstChildOfClass("Humanoid")
+        if Hum then Hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+    end
+end)
+
+MainTab:CreateSection("Advanced Movement")
+
+MainTab:CreateSlider({
+    Name = "Fly Speed",
+    Range = {10, 300},
+    Increment = 5,
+    Suffix = "Studs",
+    CurrentValue = 50,
+    Flag = "FlySpeedSlider",
+    Callback = function(Value)
+        shared.FlySpeed = Value
+    end,
+})
+
+shared.HandleFlight = function()
+    local Camera = Workspace.CurrentCamera
+    local Character = LocalPlayer.Character
+    local Root = Character and Character:FindFirstChild("HumanoidRootPart")
+    local Hum = Character and Character:FindFirstChildOfClass("Humanoid")
+
+    if not Root or not Hum then return end
+
+    local BVel = Root:FindFirstChild("VoxleFlyForce") or Instance.new("BodyVelocity")
+    BVel.Name = "VoxleFlyForce"
+    BVel.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    BVel.Parent = Root
+
+    local LGyro = Root:FindFirstChild("VoxleFlyGyro") or Instance.new("BodyGyro")
+    LGyro.Name = "VoxleFlyGyro"
+    LGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+    LGyro.CFrame = Root.CFrame
+    LGyro.Parent = Root
+
+    Hum.PlatformStand = true
+
+    shared.FlyConnection = RunService.RenderStepped:Connect(function()
+        if not shared.FlyEnabled or not Character or not Root.Parent then 
+            BVel:Destroy()
+            LGyro:Destroy()
+            if Hum then Hum.PlatformStand = false end
+            if shared.FlyConnection then shared.FlyConnection:Disconnect() end
+            return 
+        end
+
+        local Dir = Vector3.new(0,0,0)
+        local CamCFrame = Camera.CFrame
+        
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then Dir = Dir + CamCFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then Dir = Dir - CamCFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then Dir = Dir - CamCFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then Dir = Dir + CamCFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then Dir = Dir + Vector3.new(0, 1, 0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then Dir = Dir - Vector3.new(0, 1, 0) end
+
+        BVel.Velocity = Dir.Magnitude > 0 and Dir.Unit * shared.FlySpeed or Vector3.new(0,0,0)
+        LGyro.CFrame = CamCFrame
+    end)
+end
+
+MainTab:CreateToggle({
+    Name = "Fly (WASD + Space/Shift)",
+    CurrentValue = false,
+    Flag = "FlyToggle",
+    Callback = function(Value)
+        shared.FlyEnabled = Value
+        if shared.FlyEnabled then
+            shared.HandleFlight()
+        else
+            if shared.FlyConnection then shared.FlyConnection:Disconnect() end
+            local Char = LocalPlayer.Character
+            local Root = Char and Char:FindFirstChild("HumanoidRootPart")
+            local Hum = Char and Char:FindFirstChildOfClass("Humanoid")
+            if Root then
+                if Root:FindFirstChild("VoxleFlyForce") then Root.VoxleFlyForce:Destroy() end
+                if Root:FindFirstChild("VoxleFlyGyro") then Root.VoxleFlyGyro:Destroy() end
+            end
+            if Hum then Hum.PlatformStand = false end
+        end
+    end,
+})
+
+MainTab:CreateToggle({
+    Name = "Noclip",
+    CurrentValue = false,
+    Flag = "NoclipToggle",
+    Callback = function(Value)
+        shared.NoclipEnabled = Value
+        if shared.NoclipEnabled then
+            shared.NoclipConnection = RunService.Stepped:Connect(function()
+                if not shared.NoclipEnabled then 
+                    if shared.NoclipConnection then shared.NoclipConnection:Disconnect() end
+                    return 
+                end
+                if LocalPlayer.Character then
+                    for _, Part in ipairs(LocalPlayer.Character:GetDescendants()) do
+                        if Part:IsA("BasePart") and Part.CanCollide then
+                            Part.CanCollide = false
+                        end
+                    end
+                end
+            end)
+        else
+            if shared.NoclipConnection then shared.NoclipConnection:Disconnect() end
+        end
+    end,
+})
+
+MainTab:CreateSection("Visuals")
+
+local function CleanUpPlayerESP(Player)
+    if shared.EspConnections[Player] then
+        for _, Connection in ipairs(shared.EspConnections[Player]) do
+            Connection:Disconnect()
+        end
+        shared.EspConnections[Player] = nil
+    end
+    if shared.EspFolder then
+        local Container = shared.EspFolder:FindFirstChild(Player.Name)
+        if Container then Container:Destroy() end
+    end
+end
+
+local function ConstructFullESP(Player)
+    if Player == LocalPlayer then return end
+    CleanUpPlayerESP(Player)
+
+    shared.EspConnections[Player] = {}
+    if not shared.EspFolder then return end
+
+    local Container = Instance.new("Folder")
+    Container.Name = Player.Name
+    Container.Parent = shared.EspFolder
+
+    local function CreateNameTag(Char)
+        if not Char then return end
+        local Root = Char:WaitForChild("HumanoidRootPart", 5)
+        if not Root then return end
+
+        local BbGui = Instance.new("BillboardGui")
+        BbGui.Name = "EspNameTag"
+        BbGui.AlwaysOnTop = true
+        BbGui.Size = UDim2.new(0, 200, 0, 50)
+        BbGui.StudsOffset = Vector3.new(0, 3, 0)
+        BbGui.Adornee = Root
+        BbGui.Parent = Container
+
+        local TextLabel = Instance.new("TextLabel")
+        TextLabel.Size = UDim2.new(1, 0, 1, 0)
+        TextLabel.BackgroundTransparency = 1
+        TextLabel.Text = Player.Name
+        TextLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+        TextLabel.TextSize = 14
+        TextLabel.Font = Enum.Font.SourceSansBold
+        TextLabel.TextStrokeTransparency = 0
+        TextLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+        TextLabel.Parent = BbGui
+    end
+
+    if Player.Character then CreateNameTag(Player.Character) end
+    
+    local CharAdded = Player.CharacterAdded:Connect(function(Char)
+        task.wait(0.5)
+        CreateNameTag(Char)
+    end)
+    table.insert(shared.EspConnections[Player], CharAdded)
+end
+
+MainTab:CreateToggle({
+    Name = "Player ESP",
+    CurrentValue = false,
+    Flag = "EspToggle",
+    Callback = function(Value)
+        shared.EspEnabled = Value
+        if shared.EspEnabled then
+            for _, Player in ipairs(Players:GetPlayers()) do
+                ConstructFullESP(Player)
+            end
+            shared.PlayerAddedConn = Players.PlayerAdded:Connect(ConstructFullESP)
+            shared.PlayerRemovingConn = Players.PlayerRemoving:Connect(CleanUpPlayerESP)
+        else
+            if shared.PlayerAddedConn then shared.PlayerAddedConn:Disconnect() end
+            if shared.PlayerRemovingConn then shared.PlayerRemovingConn:Disconnect() end
+            for _, Player in ipairs(Players:GetPlayers()) do
+                CleanUpPlayerESP(Player)
+            end
+        end
+    end,
+})
+LocalPlayer.CharacterAdded:Connect(function(Character)
+    local Humanoid = Character:WaitForChild("Humanoid")
+    task.wait(0.5) 
+    
+    if Rayfield.Flags["WalkSpeedSlider"] then
+        Humanoid.WalkSpeed = Rayfield.Flags["WalkSpeedSlider"].CurrentValue
+    end
+    if Rayfield.Flags["JumpPowerSlider"] then
+        Humanoid.UseJumpPower = true
+        Humanoid.JumpPower = Rayfield.Flags["JumpPowerSlider"].CurrentValue
+    end
+    if shared.FlyEnabled then
+        shared.HandleFlight()
+    end
+end)
+
+CreditsTab:CreateSection("Community")
+
+CreditsTab:CreateButton({
+    Name = "Join the Discord",
+    Callback = function() 
+        setclipboard("https://discord.gg")
+        Rayfield:Notify({
+            Title = "Success",
+            Content = "Discord link copied to your clipboard!",
+            Duration = 3,
+            Image = 4483362458,
+        })
+    end
+})
