@@ -1,9 +1,9 @@
-local SellLemonsId = 79268393072444
-
-local Scripts = {
-    SellLemons = "https://raw.githubusercontent.com/ImNotVoxle/Hub/refs/heads/main/SellLemons",
-    Universal = "https://raw.githubusercontent.com/ImNotVoxle/Hub/refs/heads/main/universal"
+local SupportedGames = {
+    [79268393072444] = "https://raw.githubusercontent.com/ImNotVoxle/Hub/refs/heads/main/SellLemons",
+    [128784467030899] = "https://raw.githubusercontent.com/ImNotVoxle/Hub/refs/heads/main/MergeaNuke"
 }
+
+local UniversalScriptUrl = "https://githubusercontent.com"
 
 local function ExecuteUrl(url)
     local success, result = pcall(function()
@@ -11,24 +11,31 @@ local function ExecuteUrl(url)
     end)
 
     if not success then
-        warn("Failed to get script:", result)
+        warn("Failed to download script from URL:", url, "\nError:", result)
         return
     end
 
-    local loaded, loadErr = pcall(function()
-        loadstring(result)()
-    end)
-
+    local loaded, loadErr = loadstring(result)
     if not loaded then
-        warn("Failed to execute script:", loadErr)
+        warn("Failed to compile script structure:", loadErr)
+        return
+    end
+
+    local executed, execErr = pcall(loaded)
+    if not executed then
+        warn("Runtime error during script execution:", execErr)
     end
 end
 
-print("Current PlaceId:", game.PlaceId)
-print("Current GameId:", game.GameId)
+print("[Hub] Current PlaceId:", game.PlaceId)
+print("[Hub] Current GameId:", game.GameId)
 
-if game.PlaceId == SellLemonsId or game.GameId == SellLemonsId then
-    ExecuteUrl(Scripts.SellLemons)
+local scriptToRun = SupportedGames[game.PlaceId] or SupportedGames[game.GameId]
+
+if scriptToRun then
+    print("[Hub] Supported game detected. Loading specific script...")
+    ExecuteUrl(scriptToRun)
 else
-    ExecuteUrl(Scripts.Universal)
+    print("[Hub] Game not supported. Loading universal script...")
+    ExecuteUrl(UniversalScriptUrl)
 end
