@@ -640,7 +640,7 @@ end)
 CreditsTab:CreateSection("Community")
 
 CreditsTab:CreateButton({
-    Name = "Copy Universal Discord",
+    Name = "Copy Discord",
     Callback = function() 
         setclipboard("https://discord.gg/gcHGgT3nfp")
         Rayfield:Notify({
