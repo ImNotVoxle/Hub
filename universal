@@ -207,7 +207,7 @@ shared.HandleFlight = function()
 end
 
 MainTab:CreateToggle({
-    Name = "Fly (WASD + Space/Shift)",
+    Name = "Fly",
     CurrentValue = false,
     Flag = "FlyToggle",
     Callback = function(Value)
@@ -356,7 +356,7 @@ CreditsTab:CreateSection("Community")
 CreditsTab:CreateButton({
     Name = "Join the Discord",
     Callback = function() 
-        setclipboard("https://discord.gg")
+        setclipboard("https://discord.gg/gcHGgT3nfp")
         Rayfield:Notify({
             Title = "Success",
             Content = "Discord link copied to your clipboard!",
