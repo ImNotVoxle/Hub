@@ -3,7 +3,7 @@ local SupportedGames = {
     [128784467030899] = "https://raw.githubusercontent.com/ImNotVoxle/Hub/refs/heads/main/MergeaNuke"
 }
 
-local UniversalScriptUrl = "https://githubusercontent.com"
+local UniversalScriptUrl = "https://raw.githubusercontent.com/ImNotVoxle/Hub/refs/heads/main/universal"
 
 local function ExecuteUrl(url)
     local success, result = pcall(function()
