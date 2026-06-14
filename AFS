@@ -1,0 +1,603 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "AFS",
+    LoadingTitle = "Voxle Hub",
+    LoadingSubtitle = "by Keybrew",
+    ConfigurationSaving = {
+        Enabled = false,
+        FolderName = "VoxleHubConfigs",
+        FileName = "VoxleHub"
+    },
+    KeySystem = false,
+    Theme = "Default",
+    ToggleUIKeybind = Enum.KeyCode.RightAlt
+})
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+
+local MainTab = Window:CreateTab("Main", 4483362458)
+local MiscTab = Window:CreateTab("Misc", 4483362458)
+
+local UniversalTab = Window:CreateTab("Universal", 4483362458)
+local CreditsTab = Window:CreateTab("Credits", 4483362458)
+
+MainTab:CreateSection("Fruit")
+
+
+local validFruits = {
+    ["Buddha"] = true, ["Chop"] = true, ["Flame"] = true, 
+    ["Gear2"] = true, ["Goro"] = true, ["Ice"] = true, 
+    ["Light"] = true, ["Magma"] = true, ["Mochi"] = true, 
+    ["Quake"] = true, ["Rubber"] = true, ["Sand"] = true, 
+    ["String"] = true
+}
+
+local function findCurrentFruit()
+    local Workspace = game:GetService("Workspace")
+    for _, child in ipairs(Workspace:GetChildren()) do
+        if validFruits[child.Name] then
+            return child
+        end
+    end
+    return nil
+end
+
+local ToggleAutoPickUp = MainTab:CreateToggle({
+   Name = "Auto Pick Up Fruit",
+   CurrentValue = false,
+   Flag = "FruitAutoPickUpToggle",
+   Callback = function(Value)
+        shared.FruitAutoPickUpActive = Value
+        
+        if shared.FruitAutoPickUpActive then
+            task.spawn(function()
+                local Players = game:GetService("Players")
+                local localPlayer = Players.LocalPlayer
+                
+                while shared.FruitAutoPickUpActive do
+                    local targetFruit = findCurrentFruit()
+                    local character = localPlayer.Character
+                    local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+                    
+                    if targetFruit and rootPart then
+                        rootPart.CFrame = targetFruit:GetPivot()
+                        task.wait(0.1)
+                        
+                        local prompt = targetFruit:FindFirstChildOfClass("ProximityPrompt") or targetFruit:FindFirstChildWhichIsA("ProximityPrompt", true)
+                        
+                        if prompt then
+                            if fireproximityprompt then
+                                fireproximityprompt(prompt)
+                            else
+                                prompt:InputHoldBegin()
+                                task.wait(prompt.HoldDuration or 0.1)
+                                prompt:InputHoldEnd()
+                            end
+                        end
+                    end
+                    task.wait(0.4)
+                end
+            end)
+        end
+   end,
+})
+local Button = MainTab:CreateButton({
+   Name = "Fruit Teleport",
+   Callback = function()
+        local Players = game:GetService("Players")
+        local localPlayer = Players.LocalPlayer
+        local character = localPlayer.Character
+        local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+        
+        if not rootPart then
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Character or HumanoidRootPart not found!",
+                Duration = 3,
+                Image = 4483362458,
+            })
+            return
+        end
+        
+        local targetFruit = findCurrentFruit()
+        
+        if targetFruit then
+            local targetCFrame = targetFruit:GetPivot()
+            rootPart.CFrame = targetCFrame * CFrame.new(0, 3, 0)
+            
+            Rayfield:Notify({
+                Title = "Success",
+                Content = "Teleported to " .. targetFruit.Name .. " Fruit!",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        else
+            Rayfield:Notify({
+                Title = "Notification",
+                Content = "No spawned fruit detected in the world right now.",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        end
+   end,
+})
+
+
+local Button = MiscTab:CreateButton({
+   Name = "Open Kagune",
+   Callback = function()
+        local promptPath = workspace:FindFirstChild("Map") 
+    and workspace.Map:FindFirstChild("Interactive") 
+    and workspace.Map.Interactive:FindFirstChild("Crates") 
+    and workspace.Map.Interactive.Crates:FindFirstChild("KaguneCrate") 
+    and workspace.Map.Interactive.Crates.KaguneCrate:FindFirstChildOfClass("ProximityPrompt")
+
+if promptPath then
+    if fireproximityprompt then
+        fireproximityprompt(promptPath)
+        print("[Hub] Successfully fired Kagune Crate Proximity Prompt.")
+    else
+        promptPath:InputHoldBegin()
+        task.wait(promptPath.HoldDuration or 0.1)
+        promptPath:InputHoldEnd()
+        print("[Hub] Fired fallback InputHold macros.")
+    end
+else
+    warn("[Hub Error] Could not locate KaguneCrate ProximityPrompt in the active workspace context!")
+end
+   end,
+})
+
+
+local Button = MiscTab:CreateButton({
+   Name = "Open Stand",
+   Callback = function()
+        local promptPath = workspace:FindFirstChild("Map") 
+    and workspace.Map:FindFirstChild("Interactive") 
+    and workspace.Map.Interactive:FindFirstChild("Crates") 
+    and workspace.Map.Interactive.Crates:FindFirstChild("StandCrate") 
+    and workspace.Map.Interactive.Crates.StandCrate:FindFirstChildOfClass("ProximityPrompt")
+
+if promptPath then
+    if fireproximityprompt then
+        fireproximityprompt(promptPath)
+        print("[Hub] Successfully fired Stand Crate Proximity Prompt.")
+    else
+        promptPath:InputHoldBegin()
+        task.wait(promptPath.HoldDuration or 0.1)
+        promptPath:InputHoldEnd()
+        print("[Hub] Fired fallback InputHold macros.")
+    end
+else
+    warn("[Hub Error] Could not locate StandCrate ProximityPrompt in the active workspace context!")
+end
+   end,
+})
+
+
+shared.InfJumpEnabled = false
+shared.FlyEnabled = false
+shared.EspEnabled = false
+shared.NoclipEnabled = false
+shared.FlySpeed = 50
+
+shared.WalkSpeedEnabled = false
+shared.JumpPowerEnabled = false
+shared.TargetWalkSpeed = 16
+shared.TargetJumpPower = 50
+
+shared.FlyConnection = nil
+shared.NoclipConnection = nil
+shared.EspConnections = {}
+
+local function CleanUpPlayerESP(Player)
+    if shared.EspConnections[Player] then
+        for _, Connection in ipairs(shared.EspConnections[Player]) do
+            Connection:Disconnect()
+        end
+        shared.EspConnections[Player] = nil
+    end
+    if shared.EspFolder then
+        local Container = shared.EspFolder:FindFirstChild(Player.Name)
+        if Container then Container:Destroy() end
+    end
+end
+
+local function ConstructFullESP(Player)
+    if Player == LocalPlayer then return end
+    CleanUpPlayerESP(Player)
+
+    shared.EspConnections[Player] = {}
+    if not shared.EspFolder then return end
+
+    local Container = Instance.new("Folder")
+    Container.Name = Player.Name
+    Container.Parent = shared.EspFolder
+
+    local function CreateNameTag(Char)
+        if not Char then return end
+        local Root = Char:WaitForChild("HumanoidRootPart", 5)
+        if not Root then return end
+
+        local BbGui = Instance.new("BillboardGui")
+        BbGui.Name = "EspNameTag"
+        BbGui.AlwaysOnTop = true
+        BbGui.Size = UDim2.new(0, 200, 0, 50)
+        BbGui.StudsOffset = Vector3.new(0, 3, 0)
+        BbGui.Adornee = Root
+        BbGui.Parent = Container
+
+        local TextLabel = Instance.new("TextLabel")
+        TextLabel.Size = UDim2.new(1, 0, 1, 0)
+        TextLabel.BackgroundTransparency = 1
+        TextLabel.Text = Player.Name
+        TextLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+        TextLabel.TextSize = 14
+        TextLabel.Font = Enum.Font.SourceSansBold
+        TextLabel.TextStrokeTransparency = 0
+        TextLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+        TextLabel.Parent = BbGui
+    end
+
+    if Player.Character then CreateNameTag(Player.Character) end
+    
+    local CharAdded = Player.CharacterAdded:Connect(function(Char)
+        task.wait(0.5)
+        CreateNameTag(Char)
+    end)
+    table.insert(shared.EspConnections[Player], CharAdded)
+end
+
+
+local Toggle = MainTab:CreateToggle({
+   Name = "Fruit ESP",
+   CurrentValue = false,
+   Flag = "FruitEspToggle",
+   Callback = function(Value)
+        shared.FruitEspActive = Value
+        local Workspace = game:GetService("Workspace")
+        
+        local function removeFruitGlow(object)
+            local glow = object:FindFirstChild("HubFruitGlow")
+            local label = object:FindFirstChild("HubFruitLabel")
+            if glow then glow:Destroy() end
+            if label then label:Destroy() end
+        end
+
+        local function applyFruitGlow(object)
+            if not shared.FruitEspActive then return end
+            if not validFruits[object.Name] then return end
+            if object:FindFirstChild("HubFruitGlow") then return end
+            
+            local highlight = Instance.new("Highlight")
+            highlight.Name = "HubFruitGlow"
+            highlight.FillColor = Color3.fromRGB(0, 255, 127)
+            highlight.FillTransparency = 0.4
+            highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+            highlight.OutlineTransparency = 0
+            highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+            highlight.Adornee = object
+            highlight.Parent = object
+            
+            local bbGui = Instance.new("BillboardGui")
+            bbGui.Name = "HubFruitLabel"
+            bbGui.AlwaysOnTop = true
+            bbGui.Size = UDim2.new(0, 150, 0, 40)
+            bbGui.StudsOffset = Vector3.new(0, 4, 0)
+            bbGui.Adornee = object
+            bbGui.Parent = object
+            
+            local textLabel = Instance.new("TextLabel")
+            textLabel.Size = UDim2.new(1, 0, 1, 0)
+            textLabel.BackgroundTransparency = 1
+            textLabel.Text = string.upper(object.Name) .. " FRUIT"
+            textLabel.TextColor3 = Color3.fromRGB(0, 255, 127)
+            textLabel.TextSize = 16
+            textLabel.Font = Enum.Font.SourceSansBold
+            textLabel.TextStrokeTransparency = 0
+            textLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            textLabel.Parent = bbGui
+        end
+
+        if shared.FruitEspActive then
+            for _, child in ipairs(Workspace:GetChildren()) do
+                applyFruitGlow(child)
+            end
+            
+            if not shared.FruitEspConnection then
+                shared.FruitEspConnection = Workspace.ChildAdded:Connect(function(newChild)
+                    task.wait(0.1)
+                    if shared.FruitEspActive then
+                        applyFruitGlow(newChild)
+                    end
+                end)
+            end
+        else
+            if shared.FruitEspConnection then
+                shared.FruitEspConnection:Disconnect()
+                shared.FruitEspConnection = nil
+            end
+            for _, child in ipairs(Workspace:GetChildren()) do
+                if validFruits[child.Name] then
+                    removeFruitGlow(child)
+                end
+            end
+        end
+   end,
+})
+
+
+UniversalTab:CreateSection("Movement Modifications")
+
+UniversalTab:CreateSlider({
+    Name = "WalkSpeed",
+    Range = {16, 250},
+    Increment = 1,
+    Suffix = "Speed",
+    CurrentValue = 16,
+    Flag = "WalkSpeedSlider",
+    Callback = function(Value)
+        shared.TargetWalkSpeed = Value
+        if shared.WalkSpeedEnabled then
+            local Char = LocalPlayer.Character
+            local Hum = Char and Char:FindFirstChildOfClass("Humanoid")
+            if Hum then Hum.WalkSpeed = Value end
+        end
+    end,
+})
+
+UniversalTab:CreateToggle({
+    Name = "Enable WalkSpeed",
+    CurrentValue = false,
+    Flag = "WalkSpeedToggle",
+    Callback = function(Value)
+        shared.WalkSpeedEnabled = Value
+        if not Value then
+            local Char = LocalPlayer.Character
+            local Hum = Char and Char:FindFirstChildOfClass("Humanoid")
+            if Hum then Hum.WalkSpeed = 16 end
+        end
+    end,
+})
+
+UniversalTab:CreateSlider({
+    Name = "JumpPower",
+    Range = {50, 500},
+    Increment = 1,
+    Suffix = "Power",
+    CurrentValue = 50,
+    Flag = "JumpPowerSlider",
+    Callback = function(Value)
+        shared.TargetJumpPower = Value
+        if shared.JumpPowerEnabled then
+            local Char = LocalPlayer.Character
+            local Hum = Char and Char:FindFirstChildOfClass("Humanoid")
+            if Hum then
+                Hum.UseJumpPower = true
+                Hum.JumpPower = Value
+            end
+        end
+    end,
+})
+
+UniversalTab:CreateToggle({
+    Name = "Enable JumpPower",
+    CurrentValue = false,
+    Flag = "JumpPowerToggle",
+    Callback = function(Value)
+        shared.JumpPowerEnabled = Value
+        if not Value then
+            local Char = LocalPlayer.Character
+            local Hum = Char and Char:FindFirstChildOfClass("Humanoid")
+            if Hum then 
+                Hum.JumpPower = 50 
+            end
+        end
+    end,
+})
+
+RunService.RenderStepped:Connect(function()
+    local Char = LocalPlayer.Character
+    local Hum = Char and Char:FindFirstChildOfClass("Humanoid")
+    if not Hum then return end
+    
+    if shared.WalkSpeedEnabled then
+        if Hum.WalkSpeed ~= shared.TargetWalkSpeed then
+            Hum.WalkSpeed = shared.TargetWalkSpeed
+        end
+    end
+    
+    if shared.JumpPowerEnabled then
+        if not Hum.UseJumpPower then
+            Hum.UseJumpPower = true
+        end
+        if Hum.JumpPower ~= shared.TargetJumpPower then
+            Hum.JumpPower = shared.TargetJumpPower
+        end
+    end
+end)
+
+UniversalTab:CreateToggle({
+    Name = "Infinite Jump",
+    CurrentValue = false,
+    Flag = "InfJumpToggle",
+    Callback = function(Value)
+        shared.InfJumpEnabled = Value
+    end,
+})
+
+UserInputService.JumpRequest:Connect(function()
+    if shared.InfJumpEnabled then
+        local Char = LocalPlayer.Character
+        local Hum = Char and Char:FindFirstChildOfClass("Humanoid")
+        if Hum then Hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+    end
+end)
+
+UniversalTab:CreateSection("Advanced Movement")
+
+UniversalTab:CreateSlider({
+    Name = "Fly Speed",
+    Range = {10, 300},
+    Increment = 5,
+    Suffix = "Studs",
+    CurrentValue = 50,
+    Flag = "FlySpeedSlider",
+    Callback = function(Value)
+        shared.FlySpeed = Value
+    end,
+})
+
+shared.HandleFlight = function()
+    local Camera = Workspace.CurrentCamera
+    local Character = LocalPlayer.Character
+    local Root = Character and Character:FindFirstChild("HumanoidRootPart")
+    local Hum = Character and Character:FindFirstChildOfClass("Humanoid")
+
+    if not Root or not Hum then return end
+
+    local BVel = Root:FindFirstChild("VoxleFlyForce") or Instance.new("BodyVelocity")
+    BVel.Name = "VoxleFlyForce"
+    BVel.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    BVel.Parent = Root
+
+    local LGyro = Root:FindFirstChild("VoxleFlyGyro") or Instance.new("BodyGyro")
+    LGyro.Name = "VoxleFlyGyro"
+    LGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+    LGyro.CFrame = Root.CFrame
+    LGyro.Parent = Root
+
+    Hum.PlatformStand = true
+
+    shared.FlyConnection = RunService.RenderStepped:Connect(function()
+        if not shared.FlyEnabled or not Character or not Root.Parent then 
+            BVel:Destroy()
+            LGyro:Destroy()
+            if Hum then Hum.PlatformStand = false end
+            if shared.FlyConnection then shared.FlyConnection:Disconnect() end
+            return 
+        end
+
+        local Dir = Vector3.new(0,0,0)
+        local CamCFrame = Camera.CFrame
+        
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then Dir = Dir + CamCFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then Dir = Dir - CamCFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then Dir = Dir - CamCFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then Dir = Dir + CamCFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then Dir = Dir + Vector3.new(0, 1, 0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then Dir = Dir - Vector3.new(0, 1, 0) end
+
+        BVel.Velocity = Dir.Magnitude > 0 and Dir.Unit * shared.FlySpeed or Vector3.new(0,0,0)
+        LGyro.CFrame = CamCFrame
+    end)
+end
+
+UniversalTab:CreateToggle({
+    Name = "Fly (WASD + Space/Shift)",
+    CurrentValue = false,
+    Flag = "FlyToggle",
+    Callback = function(Value)
+        shared.FlyEnabled = Value
+        if shared.FlyEnabled then
+            shared.HandleFlight()
+        else
+            if shared.FlyConnection then shared.FlyConnection:Disconnect() end
+            local Char = LocalPlayer.Character
+            local Root = Char and Char:FindFirstChild("HumanoidRootPart")
+            local Hum = Char and Char:FindFirstChildOfClass("Humanoid")
+            if Root then
+                if Root:FindFirstChild("VoxleFlyForce") then Root.VoxleFlyForce:Destroy() end
+                if Root:FindFirstChild("VoxleFlyGyro") then Root.VoxleFlyGyro:Destroy() end
+            end
+            if Hum then Hum.PlatformStand = false end
+        end
+    end,
+})
+
+UniversalTab:CreateToggle({
+    Name = "Noclip",
+    CurrentValue = false,
+    Flag = "NoclipToggle",
+    Callback = function(Value)
+        shared.NoclipEnabled = Value
+        if shared.NoclipEnabled then
+            shared.NoclipConnection = RunService.Stepped:Connect(function()
+                if not shared.NoclipEnabled then 
+                    if shared.NoclipConnection then shared.NoclipConnection:Disconnect() end
+                    return 
+                end
+                if LocalPlayer.Character then
+                    for _, Part in ipairs(LocalPlayer.Character:GetDescendants()) do
+                        if Part:IsA("BasePart") and Part.CanCollide then
+                            Part.CanCollide = false
+                        end
+                    end
+                end
+            end)
+        else
+            if shared.NoclipConnection then shared.NoclipConnection:Disconnect() end
+        end
+    end,
+})
+
+UniversalTab:CreateSection("Visuals")
+
+
+UniversalTab:CreateToggle({
+    Name = "Player ESP",
+    CurrentValue = false,
+    Flag = "EspToggle",
+    Callback = function(Value)
+        shared.EspEnabled = Value
+        if shared.EspEnabled then
+            for _, Player in ipairs(Players:GetPlayers()) do
+                ConstructFullESP(Player)
+            end
+            shared.PlayerAddedConn = Players.PlayerAdded:Connect(ConstructFullESP)
+            shared.PlayerRemovingConn = Players.PlayerRemoving:Connect(CleanUpPlayerESP)
+        else
+            if shared.PlayerAddedConn then shared.PlayerAddedConn:Disconnect() end
+            if shared.PlayerRemovingConn then shared.PlayerRemovingConn:Disconnect() end
+            for _, Player in ipairs(Players:GetPlayers()) do
+                CleanUpPlayerESP(Player)
+            end
+        end
+    end,
+})
+LocalPlayer.CharacterAdded:Connect(function(Character)
+    local Humanoid = Character:WaitForChild("Humanoid")
+    task.wait(0.5) 
+    
+    if Rayfield.Flags["WalkSpeedSlider"] then
+        Humanoid.WalkSpeed = Rayfield.Flags["WalkSpeedSlider"].CurrentValue
+    end
+    if Rayfield.Flags["JumpPowerSlider"] then
+        Humanoid.UseJumpPower = true
+        Humanoid.JumpPower = Rayfield.Flags["JumpPowerSlider"].CurrentValue
+    end
+    if shared.FlyEnabled then
+        shared.HandleFlight()
+    end
+end)
+
+
+CreditsTab:CreateSection("Community")
+
+CreditsTab:CreateButton({
+    Name = "Copy Discord",
+    Callback = function() 
+        setclipboard("https://discord.gg/gcHGgT3nfp")
+        Rayfield:Notify({
+            Title = "Success",
+            Content = "Discord link copied to your clipboard!",
+            Duration = 3,
+            Image = 4483362458,
+        })
+    end
+})
