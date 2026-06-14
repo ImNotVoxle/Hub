@@ -1,6 +1,8 @@
 local SupportedGames = {
     [79268393072444] = "https://raw.githubusercontent.com/ImNotVoxle/Hub/refs/heads/main/SellLemons",
-    [128784467030899] = "https://raw.githubusercontent.com/ImNotVoxle/Hub/refs/heads/main/MergeaNuke"
+    [128784467030899] = "https://raw.githubusercontent.com/ImNotVoxle/Hub/refs/heads/main/MergeaNuke",
+    [100429474155186] = "https://raw.githubusercontent.com/ImNotVoxle/Hub/refs/heads/main/AFS"
+
 }
 
 local UniversalScriptUrl = "https://raw.githubusercontent.com/ImNotVoxle/Hub/refs/heads/main/universal"
